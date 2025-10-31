@@ -13,6 +13,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Strings } from "../../constants/strings";
+import { Radius, Spacing } from "../../constants/theme";
 import api, { handleAPIError } from "../api/client";
 
 export default function WorkflowDetail() {
@@ -88,18 +90,12 @@ export default function WorkflowDetail() {
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Workflow</Text>
+        <Text style={styles.headerTitle}>{Strings.workflowDetail.header}</Text>
         <View style={{ width: 48 }} />
       </View>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+          <View style={styles.rowBetween}>
             <Text style={styles.title}>{data.workflowName}</Text>
             <Text
               style={[
@@ -122,7 +118,7 @@ export default function WorkflowDetail() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Payload</Text>
+          <Text style={styles.sectionTitle}>{Strings.workflowDetail.payload}</Text>
           <View style={styles.payloadBox}>
             <Text style={styles.payloadText}>
               {JSON.stringify(data.payload, null, 2)}
@@ -131,7 +127,7 @@ export default function WorkflowDetail() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Decision</Text>
+          <Text style={styles.sectionTitle}>{Strings.workflowDetail.decision}</Text>
           <TextInput
             style={styles.input}
             placeholder="Optional comment"
@@ -144,14 +140,14 @@ export default function WorkflowDetail() {
               disabled={approve.isPending}
               onPress={() => approve.mutate({ comment })}
             >
-              <Text style={styles.actionText}>Approve</Text>
+              <Text style={styles.actionText}>{Strings.workflowDetail.approve}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, styles.rejectButton]}
               disabled={reject.isPending}
               onPress={() => reject.mutate({ comment })}
             >
-              <Text style={styles.actionText}>Reject</Text>
+              <Text style={styles.actionText}>{Strings.workflowDetail.reject}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -162,9 +158,9 @@ export default function WorkflowDetail() {
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: 12,
-    paddingBottom: 8,
-    paddingHorizontal: 16,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -173,10 +169,10 @@ const styles = StyleSheet.create({
   backText: { color: "#2563eb", fontWeight: "700", width: 48 },
   headerTitle: { fontSize: 18, fontWeight: "700" },
   card: {
-    marginBottom: 12,
-    padding: 16,
+    marginBottom: Spacing.md,
+    padding: Spacing.lg,
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: Radius.lg,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -184,10 +180,10 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   title: { fontSize: 18, fontWeight: "700" },
-  subtitle: { marginTop: 6, color: "#4b5563" },
-  meta: { marginTop: 8, color: "#9ca3af", fontSize: 12 },
-  sectionTitle: { fontSize: 14, fontWeight: "700", marginBottom: 8 },
-  payloadBox: { backgroundColor: "#f3f4f6", borderRadius: 8, padding: 12 },
+  subtitle: { marginTop: Spacing.sm, color: "#4b5563" },
+  meta: { marginTop: Spacing.md, color: "#9ca3af", fontSize: 12 },
+  sectionTitle: { fontSize: 14, fontWeight: "700", marginBottom: Spacing.sm },
+  payloadBox: { backgroundColor: "#f3f4f6", borderRadius: Radius.md, padding: Spacing.md },
   payloadText: {
     fontFamily: Platform?.OS === "ios" ? "Menlo" : "monospace",
     color: "#111827",
@@ -195,16 +191,16 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: "#e5e7eb",
-    padding: 12,
-    borderRadius: 10,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
     backgroundColor: "#fff",
   },
-  actionsRow: { flexDirection: "row", gap: 12, marginTop: 12 },
+  actionsRow: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.md },
   actionButton: {
     flex: 1,
     alignItems: "center",
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: Radius.md,
   },
   approveButton: { backgroundColor: "#16a34a" },
   rejectButton: { backgroundColor: "#ef4444" },
@@ -212,11 +208,13 @@ const styles = StyleSheet.create({
   status: {
     textTransform: "capitalize",
     fontSize: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: Radius.pill,
   },
   statusPending: { backgroundColor: "#fff7ed", color: "#c2410c" },
   statusApproved: { backgroundColor: "#ecfdf5", color: "#047857" },
   statusRejected: { backgroundColor: "#fef2f2", color: "#b91c1c" },
+  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  scrollContent: { padding: Spacing.lg },
 });

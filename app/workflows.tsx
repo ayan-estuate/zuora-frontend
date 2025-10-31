@@ -1,7 +1,7 @@
 // app/workflows.tsx
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   FlatList,
   RefreshControl,
@@ -13,6 +13,8 @@ import {
 import { Workflow } from "../types/workflow";
 import { useAuth } from "../hooks/useAuth";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Spacing, Radius } from "../constants/theme";
+import { Strings } from "../constants/strings";
 import api, { handleAPIError } from "./api/client";
 
 async function fetchPending() {
@@ -51,44 +53,59 @@ export default function WorkflowsList() {
 
   if (isLoading && !data.length) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading workflows...</Text>
+      <View style={styles.centered}>
+        <Text>{Strings.workflows.loading}</Text>
       </View>
     );
   }
 
+  const keyExtractor = useCallback((i: Workflow) => i.id, []);
+  const renderItem = useCallback(
+    ({ item }: { item: Workflow }) => (
+      <TouchableOpacity onPress={() => router.push(`./workflow/${item.id}`)}>
+        <View style={styles.card}>
+          <View style={styles.rowBetween}>
+            <Text style={styles.title}>{item.workflowName}</Text>
+            <Text
+              style={
+                [
+                  styles.status,
+                  item.status === "pending"
+                    ? styles.statusPending
+                    : item.status === "approved"
+                    ? styles.statusApproved
+                    : styles.statusRejected,
+                ] as any
+              }
+            >
+              {item.status}
+            </Text>
+          </View>
+          <Text style={styles.subtitle}>{item.summary}</Text>
+          <Text style={styles.meta}>
+            {item.requester} • {new Date(item.createdAt).toLocaleString()}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    ),
+    [router]
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f7f8fa" }} edges={["top", "left", "right"]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Pending Workflows</Text>
+        <Text style={styles.headerTitle}>{Strings.workflows.header}</Text>
         <TouchableOpacity onPress={async () => { await signOut(); router.replace("./login"); }}>
-          <Text style={styles.logout}>Logout</Text>
+          <Text style={styles.logout}>{Strings.workflows.logout}</Text>
         </TouchableOpacity>
       </View>
       <FlatList
         data={data}
-        keyExtractor={(i: Workflow) => i.id}
+        keyExtractor={keyExtractor}
         refreshControl={
           <RefreshControl refreshing={isLoading} onRefresh={refetch} />
         }
-        renderItem={({ item }: { item: Workflow }) => (
-          <TouchableOpacity
-            onPress={() => router.push(`./workflow/${item.id}`)}
-          >
-            <View style={styles.card}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <Text style={styles.title}>{item.workflowName}</Text>
-                <Text style={[styles.status, item.status === "pending" ? styles.statusPending : item.status === "approved" ? styles.statusApproved : styles.statusRejected]}>
-                  {item.status}
-                </Text>
-              </View>
-              <Text style={styles.subtitle}>{item.summary}</Text>
-              <Text style={styles.meta}>
-                {item.requester} • {new Date(item.createdAt).toLocaleString()}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
+        renderItem={renderItem}
       />
     </SafeAreaView>
   );
@@ -96,9 +113,9 @@ export default function WorkflowsList() {
 
 const styles = StyleSheet.create({
   header: {
-    paddingTop: 16,
-    paddingBottom: 8,
-    paddingHorizontal: 16,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.sm,
+    paddingHorizontal: Spacing.lg,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -107,11 +124,11 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 20, fontWeight: "700" },
   logout: { color: "#ef4444", fontWeight: "700" },
   card: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    padding: 16,
+    marginHorizontal: Spacing.lg,
+    marginVertical: Spacing.sm,
+    padding: Spacing.lg,
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: Radius.lg,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -119,9 +136,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   title: { fontWeight: "700", fontSize: 16 },
-  subtitle: { marginTop: 6, color: "#4b5563" },
-  meta: { marginTop: 8, color: "#9ca3af", fontSize: 12 },
-  status: { textTransform: "capitalize", fontSize: 12, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999 },
+  subtitle: { marginTop: Spacing.sm, color: "#4b5563" },
+  meta: { marginTop: Spacing.md, color: "#9ca3af", fontSize: 12 },
+  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  status: { textTransform: "capitalize", fontSize: 12, paddingHorizontal: Spacing.sm, paddingVertical: Spacing.xs, borderRadius: Radius.pill },
   statusPending: { backgroundColor: "#fff7ed", color: "#c2410c" },
   statusApproved: { backgroundColor: "#ecfdf5", color: "#047857" },
   statusRejected: { backgroundColor: "#fef2f2", color: "#b91c1c" },

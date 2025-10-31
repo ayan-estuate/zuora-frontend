@@ -1,7 +1,7 @@
 // app/login.tsx
 import { useRouter } from "expo-router";
+import { Formik } from "formik";
 import React, { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
   StyleSheet,
@@ -11,18 +11,16 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Yup from "yup";
 import { useAuth } from "../hooks/useAuth";
 import api from "./api/client";
 
 export default function LoginScreen() {
-  const { control, handleSubmit } = useForm({
-    defaultValues: { email: "", password: "" },
-  });
   const auth = useAuth();
   const router = useRouter();
   const [passwordVisible, setPasswordVisible] = useState(false);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: { email: string; password: string }) => {
     try {
       const res = await api.post("/auth/login", data);
       await auth.signIn(res.data.user, res.data.token);
@@ -41,59 +39,81 @@ export default function LoginScreen() {
     }
   };
 
+  const LoginSchema = Yup.object().shape({
+    email: Yup.string()
+      .email("Enter a valid email")
+      .required("Email is required"),
+    password: Yup.string()
+      .min(6, "At least 6 characters")
+      .required("Password is required"),
+  });
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <View style={styles.container}>
         <View style={styles.card}>
           <Text style={styles.title}>Welcome back</Text>
           <Text style={styles.subtitle}>Sign in to continue</Text>
-          <Controller
-            name="email"
-            control={control}
-            render={({ field }) => (
-              <TextInput
-                style={styles.input}
-                placeholder="Email"
-                value={field.value}
-                onChangeText={field.onChange}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
-            )}
-          />
-          <Controller
-            name="password"
-            control={control}
-            render={({ field }) => (
-              <View style={styles.inputRow}>
-                <TextInput
-                  style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                  placeholder="Password"
-                  value={field.value}
-                  onChangeText={field.onChange}
-                  secureTextEntry={!passwordVisible}
-                />
-                <TouchableOpacity
-                  onPress={() => setPasswordVisible((v) => !v)}
-                  style={styles.toggle}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    passwordVisible ? "Hide password" : "Show password"
-                  }
-                >
-                  <Text style={styles.toggleText}>
-                    {passwordVisible ? "Hide" : "Show"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
-          <TouchableOpacity
-            style={styles.primaryButton}
-            onPress={handleSubmit(onSubmit)}
+          <Formik<{ email: string; password: string }>
+            initialValues={{ email: "", password: "" }}
+            validationSchema={LoginSchema}
+            onSubmit={onSubmit}
+            validateOnBlur
           >
-            <Text style={styles.primaryButtonText}>Sign in</Text>
-          </TouchableOpacity>
+            {(formik: any) => (
+              <>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  value={formik.values.email}
+                  onChangeText={formik.handleChange("email")}
+                  onBlur={formik.handleBlur("email")}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoComplete="email"
+                  textContentType="emailAddress"
+                />
+                {formik.touched.email && formik.errors.email ? (
+                  <Text style={styles.errorText}>{formik.errors.email}</Text>
+                ) : null}
+
+                <View style={styles.inputRow}>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    placeholder="Password"
+                    value={formik.values.password}
+                    onChangeText={formik.handleChange("password")}
+                    onBlur={formik.handleBlur("password")}
+                    secureTextEntry={!passwordVisible}
+                    autoComplete="password"
+                    textContentType="password"
+                  />
+                  <TouchableOpacity
+                    onPress={() => setPasswordVisible((v) => !v)}
+                    style={styles.toggle}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      passwordVisible ? "Hide password" : "Show password"
+                    }
+                  >
+                    <Text style={styles.toggleText}>
+                      {passwordVisible ? "Hide" : "Show"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                {formik.touched.password && formik.errors.password ? (
+                  <Text style={styles.errorText}>{formik.errors.password}</Text>
+                ) : null}
+
+                <TouchableOpacity
+                  style={styles.primaryButton}
+                  onPress={() => formik.handleSubmit()}
+                >
+                  <Text style={styles.primaryButtonText}>Sign in</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </Formik>
           <TouchableOpacity
             onPress={() => router.replace("./signup")}
             style={styles.linkWrap}
@@ -157,4 +177,5 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
   linkWrap: { alignItems: "center", marginTop: 14 },
   link: { color: "#2563eb", fontWeight: "600" },
+  errorText: { color: "#b91c1c", marginTop: -6, marginBottom: 8 },
 });

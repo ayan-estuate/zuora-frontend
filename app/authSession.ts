@@ -3,9 +3,11 @@ type Listener = () => void;
 
 const unauthorizedListeners = new Set<Listener>();
 
-export function subscribeUnauthorized(listener: Listener) {
+export function subscribeUnauthorized(listener: Listener): () => void {
   unauthorizedListeners.add(listener);
-  return () => unauthorizedListeners.delete(listener);
+  return () => {
+    unauthorizedListeners.delete(listener);
+  };
 }
 
 export function notifyUnauthorized() {
